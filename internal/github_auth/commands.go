@@ -26,37 +26,24 @@ type verificationFailedMsg struct {
 }
 
 type Service struct {
-	fs      FileSystem
-	exec    Executor
-	auth    Authenticator
-	isDebug bool
+	fs   FileSystem
+	exec Executor
+	auth Authenticator
 }
 
 func NewService(
 	fs FileSystem,
 	exec Executor,
 	auth Authenticator,
-	isDebug bool,
 ) *Service {
 	return &Service{
-		fs:      fs,
-		exec:    exec,
-		auth:    auth,
-		isDebug: isDebug,
+		fs:   fs,
+		exec: exec,
+		auth: auth,
 	}
 }
 
 func (s *Service) getSshPath() (string, error) {
-	if s.isDebug {
-		dir, err := s.fs.MkdirTemp("", "archsetup-ssh-")
-		if err != nil {
-			return "", fmt.Errorf("could not make a temporary directory: %w", err)
-		}
-		log.Printf("github_auth: [DEBUG] Using temporary SSH directory: %s", dir)
-
-		return dir, nil
-	}
-
 	home, err := s.fs.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("could not find user home directory: %w", err)

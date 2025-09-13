@@ -70,7 +70,7 @@ func (m *mockAuthenticator) CheckConnection() (bool, string, string) {
 // --- Test Setup ---
 
 func setupTestService(fs FileSystem, exec Executor, auth Authenticator) *Service {
-	return NewService(fs, exec, auth, false)
+	return NewService(fs, exec, auth)
 }
 
 func setupTestModel(service *Service) *Model {
@@ -82,24 +82,10 @@ func setupTestModel(service *Service) *Model {
 func TestService_GetSshPath(t *testing.T) {
 	t.Parallel()
 
-	t.Run("Debug mode", func(t *testing.T) {
-		t.Parallel()
-		fs := &mockFileSystem{mkdirTempDir: "/tmp/test", mkdirTempErr: nil}
-		service := NewService(fs, nil, nil, true)
-
-		path, err := service.getSshPath()
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if path != "/tmp/test" {
-			t.Errorf("expected path '/tmp/test', got '%s'", path)
-		}
-	})
-
 	t.Run("Normal mode", func(t *testing.T) {
 		t.Parallel()
 		fs := &mockFileSystem{homeDir: "/home/user", mkdirAllErr: nil}
-		service := NewService(fs, nil, nil, false)
+		service := NewService(fs, nil, nil)
 
 		path, err := service.getSshPath()
 		if err != nil {
@@ -113,7 +99,7 @@ func TestService_GetSshPath(t *testing.T) {
 	t.Run("Normal mode home dir error", func(t *testing.T) {
 		t.Parallel()
 		fs := &mockFileSystem{homeDirErr: errors.New("home dir error")}
-		service := NewService(fs, nil, nil, false)
+		service := NewService(fs, nil, nil)
 
 		_, err := service.getSshPath()
 		if err == nil {

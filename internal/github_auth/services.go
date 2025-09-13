@@ -31,12 +31,10 @@ type Authenticator interface {
 // NewDefaultService creates a service with live dependencies.
 // This should be used in main.go.
 func NewDefaultService() *Service {
-	isDebug := os.Getenv("DEBUG") == "1"
 	return NewService(
 		LiveFileSystem{},
 		LiveExecutor{},
 		LiveAuthenticator{},
-		isDebug,
 	)
 }
 
