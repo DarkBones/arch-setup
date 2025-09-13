@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# --- configurable (or override via env) ---
 AUR_PKG="${AUR_PKG:-bas-tui}"
 AUR_DIR="${AUR_DIR:-$HOME/tmp/$AUR_PKG}"
 AUR_SSH="${AUR_SSH:-ssh://aur@aur.archlinux.org/${AUR_PKG}.git}"
-BUMP_MODE="${BUMP_MODE:-patch}"     # major|minor|patch (ignored if --version given)
+BUMP_MODE="${BUMP_MODE:-patch}" 
 # ------------------------------------------
 
 usage() {
@@ -25,7 +24,17 @@ STAMP=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --version) VERSION="${2:?}"; shift 2;;
-    --bump)    BUMP_MODE="${2:?major|minor|patch}"; shift 2;;
+    --bump)
+      BUMP_MODE="${2:-}"
+      case "$BUMP_MODE" in
+        major|minor|patch) ;;
+        *)
+          echo "error: --bump expects one of: major|minor|patch" >&2
+          exit 2
+          ;;
+      esac
+      shift 2
+      ;;
     --stamp)   STAMP=1; shift;;
     -h|--help) usage; exit 0;;
     *) echo "Unknown arg: $1" >&2; usage; exit 2;;
