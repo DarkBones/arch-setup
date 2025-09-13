@@ -4,15 +4,15 @@ set -euo pipefail
 AUR_PKG="${AUR_PKG:-bas-tui}"
 AUR_DIR="${AUR_DIR:-$HOME/tmp/$AUR_PKG}"
 AUR_SSH="${AUR_SSH:-ssh://aur@aur.archlinux.org/${AUR_PKG}.git}"
-BUMP_MODE="${BUMP_MODE:-patch}" 
+BUMP_MODE="${BUMP_MODE:-patch}"
 # ------------------------------------------
 
 usage() {
   cat <<EOF
 Usage:
   $0 --version X.Y.Z
-  $0 [--bump major|minor|patch]   # default: patch
-  $0 --stamp                      # version = YYYY.MM.DD.HHMM
+  $0 [--bump major|minor|patch]
+  $0 --stamp
 
 Env overrides: AUR_PKG, AUR_DIR, AUR_SSH, BUMP_MODE
 EOF
@@ -23,27 +23,43 @@ VERSION=""
 STAMP=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --version) VERSION="${2:?}"; shift 2;;
-    --bump)
-      BUMP_MODE="${2:-}"
-      case "$BUMP_MODE" in
-        major|minor|patch) ;;
-        *)
-          echo "error: --bump expects one of: major|minor|patch" >&2
-          exit 2
-          ;;
-      esac
-      shift 2
+  --version)
+    VERSION="${2:?}"
+    shift 2
+    ;;
+  --bump)
+    BUMP_MODE="${2:-}"
+    case "$BUMP_MODE" in
+    major | minor | patch) ;;
+    *)
+      echo "error: --bump expects one of: major|minor|patch" >&2
+      exit 2
       ;;
-    --stamp)   STAMP=1; shift;;
-    -h|--help) usage; exit 0;;
-    *) echo "Unknown arg: $1" >&2; usage; exit 2;;
+    esac
+    shift 2
+    ;;
+  --stamp)
+    STAMP=1
+    shift
+    ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  *)
+    echo "Unknown arg: $1" >&2
+    usage
+    exit 2
+    ;;
   esac
 done
 
 # ----- repo sanity -----
 SRC_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-[[ -n "$SRC_ROOT" ]] || { echo "Run from inside your source git repo." >&2; exit 1; }
+[[ -n "$SRC_ROOT" ]] || {
+  echo "Run from inside your source git repo." >&2
+  exit 1
+}
 cd "$SRC_ROOT"
 
 if ! git diff --quiet || ! git diff --cached --quiet; then
@@ -53,16 +69,15 @@ fi
 
 # Canonicalize GitHub https URL from 'origin'
 REMOTE="$(git remote get-url --push origin)"
-GH_HTTPS="$(echo "$REMOTE" \
-  | sed -E \
-      -e 's#^git@github\.com:(.+)/(.+)\.git$#https://github.com/\1/\2#' \
-      -e 's#^ssh://git@github\.com/(.+)/(.+)\.git$#https://github.com/\1/\2#' \
-      -e 's#^https://github\.com/(.+)/(.+)(\.git)?$#https://github.com/\1/\2#')"
+GH_HTTPS="$(echo "$REMOTE" |
+  sed -E \
+    -e 's#^git@github\.com:(.+)/(.+)\.git$#https://github.com/\1/\2#' \
+    -e 's#^ssh://git@github\.com/(.+)/(.+)\.git$#https://github.com/\1/\2#' \
+    -e 's#^https://github\.com/(.+)/(.+)(\.git)?$#https://github.com/\1/\2#')"
 GH_USER="$(echo "$GH_HTTPS" | sed -E 's#https://github.com/([^/]+)/.*#\1#')"
 
 # ----- version helpers -----
 latest_tag_version() {
-  # returns X.Y.Z (no 'v'), or 0.0.0 if none
   local t
   t="$(git tag -l 'v[0-9]*' | sed 's/^v//' | sort -V | tail -n1)"
   echo "${t:-0.0.0}"
@@ -72,11 +87,13 @@ bump_semver() {
   local ver="$1" mode="$2"
   local major minor patch
   IFS=. read -r major minor patch <<<"$ver"
-  major=${major:-0}; minor=${minor:-0}; patch=${patch:-0}
+  major=${major:-0}
+  minor=${minor:-0}
+  patch=${patch:-0}
   case "$mode" in
-    major) echo "$((major+1)).0.0" ;;
-    minor) echo "$major.$((minor+1)).0" ;;
-    patch|*) echo "$major.$minor.$((patch+1))" ;;
+  major) echo "$((major + 1)).0.0" ;;
+  minor) echo "$major.$((minor + 1)).0" ;;
+  patch | *) echo "$major.$minor.$((patch + 1))" ;;
   esac
 }
 
@@ -111,8 +128,30 @@ else
 fi
 
 cd "$AUR_DIR"
-[[ -f PKGBUILD ]] || { echo "PKGBUILD missing in $AUR_DIR"; exit 1; }
+[[ -f PKGBUILD ]] || {
+  echo "PKGBUILD missing in $AUR_DIR"
+  exit 1
+}
 
 # ----- bump PKGBUILD -----
 echo "==> Bumping AUR PKGBUILD to ${VERSION}-1"
-sed -i -E "s|^pkgver=.*$|pkgver=$*
+sed -i -E "s|^pkgver=.*$|pkgver=${VERSION}|" PKGBUILD
+sed -i -E "s|^pkgrel=.*$|pkgrel=1|" PKGBUILD
+sed -i -E "s|^url=.*$|url=\"${GH_HTTPS}\"|" PKGBUILD
+
+# Refresh checksums (optional if you use SKIP)
+if command -v updpkgsums >/dev/null 2>&1; then
+  updpkgsums
+fi
+
+# Regenerate .SRCINFO
+makepkg --printsrcinfo >.SRCINFO
+
+# Commit & push to AUR
+git config user.name "${GIT_AUTHOR_NAME:-DarkBones}"
+git config user.email "${GIT_AUTHOR_EMAIL:-${GH_USER}@users.noreply.github.com}"
+git add PKGBUILD .SRCINFO
+git commit -m "${AUR_PKG} ${VERSION}-1"
+git push origin HEAD:master
+
+echo "==> Done."
