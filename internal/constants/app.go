@@ -7,7 +7,7 @@ type appStrings struct {
 	Title string
 }
 
-const name = "Bootstrap All Systems"
+const name = "Bootstrap Any System"
 
 var App = &appStrings{
 	Name:  name,

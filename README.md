@@ -1,4 +1,4 @@
-# Bootstrap All Systems (BAS)
+# Bootstrap Any System (BAS)
 
 **BAS** is a terminal user interface (TUI) written in Go to *speedrun* your way from a fresh OS install to a fully set-up and familiar environment.
 
