@@ -121,7 +121,7 @@ func run(args []string, privilegeChecker PrivilegeChecker, app Application) (err
 		return fmt.Errorf("application error: %w", err)
 	}
 
-	println("Bye! To run this app again, run `arch-tui`")
+	println("Bye! To run this app again, run `bas-tui`")
 
 	return nil
 }
