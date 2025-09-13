@@ -1,0 +1,15 @@
+*.log
+coverage.*
+out/
+export.txt
+
+bas-tui
+arch-tui
+out/
+dist/
+debug.log
+*.pkg.tar.zst
+*.db
+*.db.tar.zst
+*.files
+*.files.tar.zst
