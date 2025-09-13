@@ -28,11 +28,10 @@ bas-tui
 ## ✅ What works today
 
 * **Arch Linux**:
-  * Detects AMD CPU and ensures `amd-ucode` is installed.
-  * Detects NVIDIA GPU and offers proprietary driver install.
   * Package installs via `pacman` + `yay`.
   * Dotfiles management with `git clone` + `stow`.
   * Profile-based installs using `bas_settings.toml`.
+  * Profile filtering works via `os_family = "darwin"`.
 
 ---
 
@@ -41,7 +40,6 @@ bas-tui
 * **macOS**:
 
   * Uses Homebrew for package installs.
-  * Profile filtering works via `os_family = "darwin"`.
   * Post-install hooks (like Ansible bootstrap) work the same way.
   * Not production-tested yet.
 
