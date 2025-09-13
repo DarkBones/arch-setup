@@ -66,7 +66,15 @@ func (s *Service) GenerateKeyCmd() tea.Cmd {
 		keyPath := filepath.Join(sshDir, sshKeyFile)
 		log.Printf("github_auth: Generating key at: %s", keyPath)
 
-		cmd := exec.Command(sshKeygenCmd, "-t", sshKeyType, "-N", "", "-f", keyPath)
+		cmd := exec.Command(
+			sshKeygenCmd,
+			"-t", sshKeyType,
+			"-a", "64",
+			"-q",
+			"-N", "",
+			"-C", "BAS "+githubHost,
+			"-f", keyPath,
+		)
 		if err := s.exec.Run(cmd); err != nil {
 			return errMsg{err: fmt.Errorf("failed to run ssh-keygen: %w", err)}
 		}
@@ -140,12 +148,11 @@ func (s *Service) ensureGitHubKnownHost() error {
 	if err != nil {
 		return err
 	}
-
 	knownHostsPath := filepath.Join(sshDir, "known_hosts")
 
 	_ = s.exec.Run(exec.Command(sshKeygenCmd, "-f", knownHostsPath, "-R", githubHost))
 
-	scanCmd := exec.Command(sshKeyscanCmd, "-t", "ed25519,ecdsa,rsa", githubHost)
+	scanCmd := exec.Command(sshKeyscanCmd, "-H", "-t", "ed25519,ecdsa,rsa", githubHost)
 	out, err := s.exec.Output(scanCmd)
 	if err != nil {
 		return fmt.Errorf("ssh-keyscan failed: %w", err)
