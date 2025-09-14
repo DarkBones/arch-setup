@@ -1,6 +1,9 @@
 package menu
 
-import "archsetup/internal/types"
+import (
+	"archsetup/internal/types"
+	"strings"
+)
 
 type item struct {
 	Phase       types.Phase
@@ -17,6 +20,14 @@ type MenuItem struct {
 
 func (i MenuItem) FilterValue() string { return i.item.Title }
 
-func (i MenuItem) Title() string       { return i.item.Title }
 func (i MenuItem) Description() string { return i.item.Description }
 func (i MenuItem) IsEnabled() bool     { return i.item.Enabled }
+
+func (i MenuItem) Title() string {
+	var pref string
+	if i.Done {
+		pref = "✅ "
+	}
+
+	return strings.Join([]string{pref, i.item.Title}, "")
+}

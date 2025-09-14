@@ -144,9 +144,11 @@ func (m *Model) handleGithubAuthMsg(msg github.AuthStatusMsg) (tea.Model, tea.Cm
 		case types.GithubAuthPhase:
 			if msg.IsAuthenticated {
 				log.Printf("menu: github is authenticated with: %s", msg.Username)
+				item.Done = true
 				item.item.Description = fmt.Sprintf(GithubAuthDesc, authenticated)
 			} else {
 				log.Println("menu: github failed to authenticate")
+				item.Done = false
 				item.item.Description = fmt.Sprintf(GithubAuthDesc, unauthenticated)
 			}
 

@@ -24,12 +24,6 @@ func GetMenuItems() []list.Item {
 			Description: fmt.Sprintf(DotfilesDesc, " (Not connected)"),
 			Enabled:     false,
 		}},
-		// MenuItem{item{
-		// 	Phase:       types.NvidiaDriversPhase,
-		// 	Title:       "Nvidia Drivers",
-		// 	Description: "Install drivers for your Nvidia GPU",
-		// 	Enabled:     false,
-		// }},
 		MenuItem{item{
 			Phase:       types.ProfilesPhase,
 			Title:       "Machine Profile",

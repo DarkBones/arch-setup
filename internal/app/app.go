@@ -70,8 +70,11 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case github.AuthStatusMsg:
 		return m.handleGithubAuthStatusMsg(msg)
 
-	case types.PhaseFinished, types.PhaseCancelled:
-		return m.handlePhaseFinishedOrCancelled()
+	case types.PhaseFinished:
+		return m.handlePhaseFinished(msg)
+
+	case types.PhaseCancelled:
+		return m.handlePhaseCancelled()
 
 	case dotfiles.DotfilesFinished:
 		return m.handleDotFilesFinishedMsg(msg)
@@ -134,11 +137,27 @@ func (m *model) handleGithubAuthStatusMsg(
 	return m, tea.Batch(cmds...)
 }
 
-func (m *model) handlePhaseFinishedOrCancelled() (tea.Model, tea.Cmd) {
+func (m *model) handlePhaseFinished(msg types.PhaseFinished) (tea.Model, tea.Cmd) {
 	log.Println("app: PhaseFinishedMsg received")
 
-	cmd := m.popNavAndInit()
-	return m, cmd
+	finished := m.nav.Current()
+
+	var cmds []tea.Cmd
+
+	m.updateAndCollectCmd(
+		types.MenuPhase,
+		menu.PhaseDoneMsg{Phase: finished},
+		&cmds,
+	)
+
+	cmds = append(cmds, m.popNavAndInit())
+	return m, tea.Batch(cmds...)
+}
+
+func (m *model) handlePhaseCancelled() (tea.Model, tea.Cmd) {
+	log.Println("app: PhaseCancelledMsg received")
+
+	return m, m.popNavAndInit()
 }
 
 func (m *model) handleDotFilesFinishedMsg(
@@ -159,6 +178,12 @@ func (m *model) handleDotFilesFinishedMsg(
 	m.updateAndCollectCmd(
 		types.MenuPhase,
 		menu.DotfilesPathUpdatedMsg{Path: msg.Path},
+		&cmds,
+	)
+
+	m.updateAndCollectCmd(
+		types.MenuPhase,
+		menu.PhaseDoneMsg{Phase: types.DotfilesPhase},
 		&cmds,
 	)
 
