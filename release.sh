@@ -120,6 +120,7 @@ build_one() {
     go build -trimpath -ldflags="-s -w" -o "$OUT" ./cmd/archsetup
   chmod +x "$OUT"
 }
+
 build_one linux amd64
 build_one linux arm64
 
@@ -137,27 +138,34 @@ need_gh() { command -v gh >/dev/null 2>&1 || {
 }; }
 need_gh
 
-release_exists() {
-  gh release view "$TAG" --repo "$REPO_SLUG" >/dev/null 2>&1
-}
+release_exists() { gh release view "$TAG" --repo "$REPO_SLUG" >/dev/null 2>&1; }
 
 if release_exists; then
   echo "==> Release ${TAG} exists — uploading/overwriting assets"
 else
   echo "==> Creating GitHub release ${TAG}"
-  ((DRYRUN)) || gh release create "$TAG" \
-    --repo "$REPO_SLUG" \
-    --title "$TAG" \
-    --notes "$TAG"
+  ((DRYRUN)) || gh release create "$TAG" --repo "$REPO_SLUG" --title "$TAG" --notes "$TAG"
 fi
 
 echo "==> Uploading assets"
+# Upload versioned assets (binaries and/or tarballs)
 ((DRYRUN)) || gh release upload "$TAG" \
   "${ART_DIR}/${BIN_NAME}-${TAG}-linux-amd64" \
   "${ART_DIR}/${BIN_NAME}-${TAG}-linux-arm64" \
   "${ART_DIR}/${BIN_NAME}-${TAG}-linux-amd64.tar.gz" \
   "${ART_DIR}/${BIN_NAME}-${TAG}-linux-arm64.tar.gz" \
-  --clobber --repo "$REPO_SLUG"
+  --repo "$REPO_SLUG" --clobber
+
+# Also upload stable (version-less) copies for your installer to fetch
+cp "${ART_DIR}/${BIN_NAME}-${TAG}-linux-amd64" "${ART_DIR}/${BIN_NAME}-linux-amd64"
+cp "${ART_DIR}/${BIN_NAME}-${TAG}-linux-arm64" "${ART_DIR}/${BIN_NAME}-linux-arm64"
+# cp "${ART_DIR}/${BIN_NAME}-${TAG}-linux-amd64.tar.gz" "${ART_DIR}/${BIN_NAME}-linux-amd64.tar.gz"
+# cp "${ART_DIR}/${BIN_NAME}-${TAG}-linux-arm64.tar.gz" "${ART_DIR}/${BIN_NAME}-linux-arm64.tar.gz"
+
+((DRYRUN)) || gh release upload "$TAG" \
+  "${ART_DIR}/${BIN_NAME}-linux-amd64" \
+  "${ART_DIR}/${BIN_NAME}-linux-arm64" \
+  --repo "$REPO_SLUG" --clobber
 
 # ---------------- AUR bump/push ----------------
 sync_aur() {
