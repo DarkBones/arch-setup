@@ -38,8 +38,6 @@ func (app *TUIApp) Run() error {
 }
 
 func main() {
-	privilegeChecker := SudoChecker{}
-
 	keys := types.DefaultKeys()
 
 	dotfilesSvc := dotfiles.NewService(
@@ -85,13 +83,13 @@ func main() {
 	program := tea.NewProgram(wrappedModel, tea.WithAltScreen())
 	tuiApp := &TUIApp{program: program}
 
-	if err := run(os.Args, privilegeChecker, tuiApp); err != nil {
+	if err := run(os.Args, tuiApp); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(args []string, privilegeChecker PrivilegeChecker, app Application) (err error) {
+func run(args []string, app Application) (err error) {
 	_, debugEnabled := os.LookupEnv("DEBUG")
 	f, err := setupLogging(debugEnabled, logfileCreator)
 	if err != nil {
@@ -109,12 +107,6 @@ func run(args []string, privilegeChecker PrivilegeChecker, app Application) (err
 	}()
 
 	log.Println("booting...")
-
-	fmt.Println("Checking administrative privileges...")
-	if err := privilegeChecker.Check(); err != nil {
-		log.Printf("sudo check failed: %v", err)
-		return fmt.Errorf("could not obtain administrative privileges: %w", err)
-	}
 
 	if err := app.Run(); err != nil {
 		log.Printf("Application error: %v", err)
