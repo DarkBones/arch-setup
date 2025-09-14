@@ -3,6 +3,7 @@ package menu
 import (
 	"archsetup/internal/github"
 	"archsetup/internal/types"
+	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -46,97 +47,63 @@ func TestUpdate_AuthStatusAuthenticated(t *testing.T) {
 	}
 }
 
-// func TestUpdate_AuthStatus(t *testing.T) {
-// 	testCases := []struct {
-// 		name              string
-// 		authMsg           github.AuthStatusMsg
-// 		expectedEnabled   bool
-// 		expectedAuthDesc  string
-// 		expectedFilesDesc string
-// 	}{
-// 		{
-// 			name:              "Authenticated",
-// 			authMsg:           github.AuthStatusMsg{IsAuthenticated: true},
-// 			expectedEnabled:   true,
-// 			expectedAuthDesc:  "Set up SSH keys for GitHub. (Authenticated)",
-// 			expectedFilesDesc: "Clone and set up your dotfiles. (Connected)",
-// 		},
-// 		{
-// 			name:              "Not Authenticated",
-// 			authMsg:           github.AuthStatusMsg{IsAuthenticated: false},
-// 			expectedEnabled:   false,
-// 			expectedAuthDesc:  "Set up SSH keys for GitHub. (Not Authenticated)",
-// 			expectedFilesDesc: "Clone and set up your dotfiles. (Not connected)",
-// 		},
-// 	}
-//
-// 	for _, tc := range testCases {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			// Arrange
-// 			m := setupTestModel()
-//
-// 			// Act
-// 			updatedModel, _ := m.Update(tc.authMsg)
-// 			m = updatedModel.(*Model)
-//
-// 			// Assert
-// 			dotfilesItem, _ := findMenuItem(m, types.DotfilesPhase)
-// 			if dotfilesItem.Enabled != tc.expectedEnabled {
-// 				t.Errorf("expected Dotfiles item enabled status to be %v, but got %v", tc.expectedEnabled, dotfilesItem.Enabled)
-// 			}
-//
-// 			authItem, _ := findMenuItem(m, types.GithubAuthPhase)
-// 			if strings.TrimSpace(authItem.Description) != tc.expectedAuthDesc {
-// 				t.Errorf("expected Auth item description to be %q, but got %q", tc.expectedAuthDesc, authItem.Description)
-// 			}
-// 			if strings.TrimSpace(dotfilesItem.Description) != tc.expectedFilesDesc {
-// 				t.Errorf("expected Dotfiles item description to be %q, but got %q", tc.expectedFilesDesc, dotfilesItem.Description)
-// 			}
-// 		})
-// 	}
-// }
+func TestUpdate_AuthStatus(t *testing.T) {
+	testCases := []struct {
+		name              string
+		authMsg           github.AuthStatusMsg
+		expectedEnabled   bool
+		expectedAuthDesc  string
+		expectedFilesDesc string
+	}{
+		{
+			name:              "Authenticated",
+			authMsg:           github.AuthStatusMsg{IsAuthenticated: true},
+			expectedEnabled:   true,
+			expectedAuthDesc:  "Set up SSH keys for GitHub. (Authenticated)",
+			expectedFilesDesc: "Clone and set up your dotfiles. (Connected)",
+		},
+		{
+			name:              "Not Authenticated",
+			authMsg:           github.AuthStatusMsg{IsAuthenticated: false},
+			expectedEnabled:   false,
+			expectedAuthDesc:  "Set up SSH keys for GitHub. (Not Authenticated)",
+			expectedFilesDesc: "Clone and set up your dotfiles. (Not connected)",
+		},
+	}
 
-// func TestUpdate_NvidiaGpuCheck(t *testing.T) {
-// 	testCases := []struct {
-// 		name            string
-// 		gpuMsg          nvidia.GpuCheckResultMsg
-// 		expectedEnabled bool
-// 		expectedDesc    string
-// 	}{
-// 		{
-// 			name:            "NVIDIA GPU Found",
-// 			gpuMsg:          nvidia.GpuCheckResultMsg{HasNvidiaGpu: true},
-// 			expectedEnabled: true,
-// 			expectedDesc:    "Install proprietary drivers for your GPU",
-// 		},
-// 		{
-// 			name:            "No NVIDIA GPU Found",
-// 			gpuMsg:          nvidia.GpuCheckResultMsg{HasNvidiaGpu: false},
-// 			expectedEnabled: false,
-// 			expectedDesc:    "No NVIDIA GPU detected",
-// 		},
-// 	}
-//
-// 	for _, tc := range testCases {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			// Arrange
-// 			m := setupTestModel()
-//
-// 			// Act
-// 			updatedModel, _ := m.Update(tc.gpuMsg)
-// 			m = updatedModel.(*Model)
-//
-// 			// Assert
-// 			nvidiaItem, _ := findMenuItem(m, types.NvidiaDriversPhase)
-// 			if nvidiaItem.Enabled != tc.expectedEnabled {
-// 				t.Errorf("expected Nvidia item enabled status to be %v, but got %v", tc.expectedEnabled, nvidiaItem.Enabled)
-// 			}
-// 			if nvidiaItem.Description != tc.expectedDesc {
-// 				t.Errorf("expected Nvidia item description to be %q, but got %q", tc.expectedDesc, nvidiaItem.Description)
-// 			}
-// 		})
-// 	}
-// }
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Arrange
+			m := setupTestModel()
+
+			// Act
+			updatedModel, _ := m.Update(tc.authMsg)
+			m = updatedModel.(*Model)
+
+			// Assert
+			dotfilesItem, _ := findMenuItem(m, types.DotfilesPhase)
+			if dotfilesItem.Enabled != tc.expectedEnabled {
+				t.Errorf("expected Dotfiles item enabled status to be %v, but got %v", tc.expectedEnabled, dotfilesItem.Enabled)
+			}
+
+			authItem, _ := findMenuItem(m, types.GithubAuthPhase)
+			if strings.TrimSpace(authItem.Description()) != tc.expectedAuthDesc {
+				t.Errorf(
+					"expected Auth item description to be %q, but got %q",
+					tc.expectedAuthDesc,
+					authItem.Description(),
+				)
+			}
+			if strings.TrimSpace(dotfilesItem.Description()) != tc.expectedFilesDesc {
+				t.Errorf(
+					"expected Dotfiles item description to be %q, but got %q",
+					tc.expectedFilesDesc,
+					dotfilesItem.Description(),
+				)
+			}
+		})
+	}
+}
 
 func TestUpdate_DotfilesPathUpdated(t *testing.T) {
 	// Arrange
