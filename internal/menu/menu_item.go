@@ -7,6 +7,7 @@ type item struct {
 	Title       string
 	Description string
 	Enabled     bool
+	Done        bool
 }
 
 // MenuItem wraps the item data and satisfies the List.Item interface.
