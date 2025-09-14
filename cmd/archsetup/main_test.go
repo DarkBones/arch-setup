@@ -30,52 +30,14 @@ func (m *mockApp) Run() error {
 	return nil
 }
 
-func TestRun_PrivilegeCheck_Success(t *testing.T) {
-	t.Parallel()
-
-	// Arrange
-	checker := mockChecker{shouldFail: false}
-	app := &mockApp{} // Create an instance of the mock app.
-
-	// Act: Pass the mock app as the third argument.
-	err := run(nil, checker, app)
-
-	// Assert
-	if err != nil {
-		t.Errorf("run() returned an error even though privilege check succeeded: %v", err)
-	}
-}
-
-func TestRun_PrivilegeCheck_Failure(t *testing.T) {
-	t.Parallel()
-
-	// Arrange
-	checker := mockChecker{shouldFail: true}
-	app := &mockApp{} // Create an instance of the mock app.
-
-	// Act: Pass the mock app as the third argument.
-	err := run(nil, checker, app)
-
-	// Assert
-	if err == nil {
-		t.Fatal("run() did not return an error even though privilege check failed")
-	}
-
-	expectedMsg := "could not obtain administrative privileges"
-	if !strings.Contains(err.Error(), expectedMsg) {
-		t.Errorf("expected error message to contain %q, but got %q", expectedMsg, err.Error())
-	}
-}
-
 func TestRun_AppFailure(t *testing.T) {
 	t.Parallel()
 
 	// Arrange
-	checker := mockChecker{shouldFail: false}
 	app := &mockApp{shouldFail: true}
 
 	// Act
-	err := run(nil, checker, app)
+	err := run(nil, app)
 
 	// Assert
 	if err == nil {
