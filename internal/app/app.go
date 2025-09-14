@@ -175,15 +175,16 @@ func (m *model) handleDotFilesFinishedMsg(
 		profiles.DotfilesPathUpdatedMsg{Path: msg.Path},
 		&cmds,
 	)
+
 	m.updateAndCollectCmd(
 		types.MenuPhase,
-		menu.DotfilesPathUpdatedMsg{Path: msg.Path},
+		menu.PhaseDoneMsg{Phase: types.DotfilesPhase},
 		&cmds,
 	)
 
 	m.updateAndCollectCmd(
 		types.MenuPhase,
-		menu.PhaseDoneMsg{Phase: types.DotfilesPhase},
+		menu.DotfilesPathUpdatedMsg{Path: msg.Path},
 		&cmds,
 	)
 
