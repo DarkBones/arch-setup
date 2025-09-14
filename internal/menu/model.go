@@ -27,6 +27,10 @@ type DotfilesPathUpdatedMsg struct {
 	Path string
 }
 
+type PhaseDoneMsg struct {
+	Phase types.Phase
+}
+
 func New(keys types.KeyMap) tea.Model {
 	items := GetMenuItems()
 	delegate := utils.ItemDelegate{}
@@ -76,6 +80,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		return m.handleKeyMsg(msg)
+
+	case PhaseDoneMsg:
+		return m.handlePhaseDoneMsg(msg)
 	}
 
 	m.updateList(msg, &cmds)
@@ -214,4 +221,23 @@ func (m *Model) View() string {
 	m.list.SetSize(m.width, utils.CalculateListHeight(m.list))
 
 	return m.list.View()
+}
+
+func (m *Model) handlePhaseDoneMsg(msg PhaseDoneMsg) (tea.Model, tea.Cmd) {
+	log.Printf("menu: handlePhaseDoneMsg: %+v", msg)
+
+	items := m.list.Items()
+	for i, li := range items {
+		item, ok := li.(MenuItem)
+		if !ok {
+			continue
+		}
+		if item.Phase == msg.Phase {
+			item.Done = true
+			items[i] = item
+			break
+		}
+	}
+	cmd := m.list.SetItems(items)
+	return m, cmd
 }
