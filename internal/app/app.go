@@ -31,8 +31,6 @@ func New(
 	models map[types.Phase]tea.Model,
 	keys types.KeyMap,
 ) *model {
-	log.Printf("app: New received: %+v", initialPhase)
-
 	return &model{
 		keys:   keys,
 		nav:    navigator.New(initialPhase),
